@@ -1,0 +1,38 @@
+# Python
+
+**pycache**/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+
+.venv/
+venv/
+
+# Environment Variables
+
+.env
+
+# Jupyter
+
+.ipynb_checkpoints/
+
+# Models
+
+models/faiss_index.bin
+models/project_embeddings.npy
+models/trained_metadata.pkl
+
+# VS Code
+
+.vscode/
+
+# OS
+
+.DS_Store
+Thumbs.db
+
+# Logs
+
+*.log
