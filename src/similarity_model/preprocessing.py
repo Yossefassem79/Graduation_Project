@@ -135,7 +135,7 @@ def is_valid_phrase(text):
     if not text:
         return False
 
-    if len(text) < 3:
+    if len(text.split()) < 2:
         return False
 
     if len(text.split()) > 4:

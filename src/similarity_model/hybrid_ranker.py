@@ -62,7 +62,7 @@ def get_dynamic_weights(
 
     # many strong features
     if feature_count >= 5 and coverage >= 0.60:
-        semantic_w = 0.55
+        semantic_w = 0.30
         feature_w = HIGH_FEATURE_WEIGHT
 
     # weak features -> trust semantic more
@@ -82,26 +82,32 @@ def compute_hybrid_score(
     coverage: float,
     feature_count: int
 ) -> float:
-    """
-    Final similarity score.
-    """
 
     semantic_score = clamp(semantic_score)
     feature_score = clamp(feature_score)
     coverage = clamp(coverage)
 
-    sem_w, feat_w = get_dynamic_weights(
-        feature_count=feature_count,
-        coverage=coverage
-    )
+    # ==========================================
+    # Strong feature overlap case
+    # ==========================================
+    if coverage >= 0.90 and feature_score >= 0.65:
+        return round(
+            clamp(
+                0.75 +
+                (0.15 * feature_score) +
+                (0.10 * semantic_score)
+            ),
+            4
+        )
 
+    # ==========================================
+    # Normal scoring
+    # ==========================================
     score = (
-        sem_w * semantic_score +
-        feat_w * feature_score
+        0.25 * semantic_score +
+        0.55 * feature_score +
+        0.20 * coverage
     )
-
-    # bonus for strong feature overlap
-    score += BONUS_WEIGHT * coverage
 
     return round(clamp(score), 4)
 
@@ -125,10 +131,7 @@ def compute_originality(
         if total_query_features > 0 else 0.0
     )
 
-    originality = (
-        0.80 * inverse_similarity +
-        0.20 * uniqueness_ratio
-    )
+    originality = 1 - hybrid_score
 
     return round(clamp(originality), 4)
 

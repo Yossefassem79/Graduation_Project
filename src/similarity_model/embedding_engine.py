@@ -9,6 +9,9 @@ import pandas as pd
 import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
+from Data.database.sql_connector import (
+    load_preprocessed_projects
+)
 
 # =====================================================
 # Logging
@@ -250,13 +253,13 @@ class ProjectEmbedder:
 # =====================================================
 # Full Training Pipeline
 # =====================================================
-def train_embedding_engine(
-    data_path: str = "Data/processed/projects_clean.parquet"
-):
+def train_embedding_engine():
 
-    logger.info("Loading processed dataset...")
+    logger.info(
+        "Loading processed dataset from Azure SQL..."
+    )
 
-    df = pd.read_parquet(data_path)
+    df = load_preprocessed_projects()
 
     engine = ProjectEmbedder()
 
@@ -264,7 +267,9 @@ def train_embedding_engine(
 
     engine.save_artifacts()
 
-    logger.info("Embedding engine completed successfully.")
+    logger.info(
+        "Embedding engine completed successfully."
+    )
 
     return engine
 

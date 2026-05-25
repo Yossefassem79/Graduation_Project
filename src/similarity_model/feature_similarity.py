@@ -92,6 +92,36 @@ def safe_feature_list(features):
 
     return []
 
+
+def remove_redundant_features(features):
+
+    cleaned = []
+    seen_words = []
+
+    for feat in features:
+
+        feat_words = set(feat.split())
+
+        redundant = False
+
+        for existing in seen_words:
+
+            overlap = len(
+                feat_words & existing
+            ) / max(len(feat_words), 1)
+
+            if overlap >= 0.90:
+                redundant = True
+                break
+
+        if not redundant:
+            cleaned.append(feat)
+            seen_words.append(feat_words)
+
+    return cleaned
+
+
+
 def empty_result(
     unique_a=None,
     unique_b=None
@@ -148,8 +178,13 @@ def compute_feature_similarity(
     if model is None:
         model = load_feature_model()
 
-    fa = safe_feature_list(features_a)
-    fb = safe_feature_list(features_b)
+    fa = remove_redundant_features(
+    safe_feature_list(features_a)
+    )
+
+    fb = remove_redundant_features(
+        safe_feature_list(features_b)
+    )
 
     # empty cases
     if not fa or not fb:
@@ -227,16 +262,55 @@ def compute_feature_similarity(
 
     final_score = min(final_score, 1.0)
 
+    matched_text_a = " ".join(
+    [
+        m["feature_a"]
+        for m in matches
+    ]
+    ).lower()
+
+    matched_text_b = " ".join(
+        [
+            m["feature_b"]
+            for m in matches
+        ]
+    ).lower()
+
+
+    def is_semantically_redundant(
+        feature,
+        matched_text
+    ):
+        words = set(feature.lower().split())
+
+        overlap = sum(
+            1 for w in words
+            if w in matched_text
+        )
+
+        ratio = overlap / max(len(words), 1)
+
+        return ratio >= 0.5
+
+
     unique_a = [
         fa[i]
         for i in range(len(fa))
         if i not in matched_a
+        and not is_semantically_redundant(
+            fa[i],
+            matched_text_a
+        )
     ]
 
     unique_b = [
         fb[j]
         for j in range(len(fb))
         if j not in matched_b
+        and not is_semantically_redundant(
+            fb[j],
+            matched_text_b
+        )
     ]
 
     return {

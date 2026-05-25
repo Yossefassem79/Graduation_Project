@@ -11,6 +11,10 @@ import pandas as pd
 import faiss
 from sentence_transformers import SentenceTransformer
 
+from Data.database.sql_connector import (
+    load_preprocessed_projects
+)
+
 # =====================================================
 # Logging
 # =====================================================
@@ -81,18 +85,12 @@ def load_faiss_index():
 
 @lru_cache(maxsize=1)
 def load_metadata():
-    if not Path(META_PATH).exists():
-        raise FileNotFoundError("Metadata not found.")
 
-    logger.info("Loading metadata...")
-    df = pd.read_parquet(META_PATH)
+    logger.info(
+        "Loading metadata from Azure SQL..."
+    )
 
-    if "features" in df.columns:
-        df["features"] = df["features"].apply(
-            lambda x: ast.literal_eval(x)
-            if isinstance(x, str) and x.startswith("[")
-            else x
-        )
+    df = load_preprocessed_projects()
 
     return df.reset_index(drop=True)
 
